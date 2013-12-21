@@ -1,9 +1,12 @@
 express = require("express")
-redis = require("redis")
 
 app = express()
 app.use(express.bodyParser());
-client = redis.createClient()
+
+if process.env.REDISTOGO_URL?
+  client = require('redis-url').connect(process.env.REDISTOGO_URL);
+else
+  client = require("redis").createClient();
 
 
 gradeMap =
