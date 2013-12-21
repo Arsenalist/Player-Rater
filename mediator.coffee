@@ -10,7 +10,7 @@ jQuery(document).ready ( $ ) ->
 		team_id = message['data']['team_id']
 		game_id = message['data']['game_id']
 		$.ajax(
-			url: "http://localhost:3000/rating/#{team_id}/#{game_id}"
+			url: "/rating/#{team_id}/#{game_id}"
 			type: 'GET'
 			dataType: 'json'
 		)
@@ -26,7 +26,7 @@ jQuery(document).ready ( $ ) ->
 	recordGrade = (message) ->
 		params = message['data']
 		$.ajax(
-			url: "http://localhost:3000/vote"
+			url: "/vote"
 			data: params
 			type: 'POST'
 			dataType: 'json'

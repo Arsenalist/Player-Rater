@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
     team_id = message['data']['team_id'];
     game_id = message['data']['game_id'];
     return $.ajax({
-      url: "http://localhost:3000/rating/" + team_id + "/" + game_id,
+      url: "/rating/" + team_id + "/" + game_id,
       type: 'GET',
       dataType: 'json'
     }).done(function(data) {
@@ -33,7 +33,7 @@ jQuery(document).ready(function($) {
     var params;
     params = message['data'];
     return $.ajax({
-      url: "http://localhost:3000/vote",
+      url: "/vote",
       data: params,
       type: 'POST',
       dataType: 'json'
