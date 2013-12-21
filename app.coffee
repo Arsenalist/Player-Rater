@@ -58,14 +58,14 @@ setJsonResponseHeaders = (res, data) ->
   res.header "content-length", (if not data? then 0 else data.length)
   res.end data
 
-app.get "/grades", (req, res) ->
-  res.sendfile("./static/grader.html")
+app.get "/mediator.html", (req, res) ->
+  res.sendfile("./mediator.html")
 
 app.get "/client.js", (req, res) ->
   res.sendfile("./client.js")
 
-app.get "/grader.js", (req, res) ->
-  res.sendfile("./grader.js")
+app.get "/mediator.js", (req, res) ->
+  res.sendfile("./mediator.js")
 
 app.get "/rating/:team_id/:game_id", (req, res) ->
   team_id = req.params.team_id
@@ -89,7 +89,7 @@ app.get "/rating/:team_id/:game_id", (req, res) ->
       console.log "returned from multi"
       console.log replies
       for r, i in replies
-        results[i]["voted"] = r == 1
+        results[i]["voted"] = (r == 1)
       console.log results
       results = JSON.stringify(results)
       setJsonResponseHeaders res, results
@@ -118,32 +118,32 @@ app.post "/vote", (req, res) ->
     if true or not has_voted
       player_key = "#{team_id}:#{game_id}:#{player_id}"
       # Record the vote
-      client.hset "user_votes", user_vote_key, grade
-      
       # Calculate the new average based on existing count and average
       count = average = new_average = 0
-      client.hget "game_player_grade_count", player_key, (err, reply) ->
-        count = (if (reply?) then parseInt(reply) else 0)
-        client.hget "game_player_grade_average", player_key, (err, average) ->
-          new_average = if average? then ((count * parseFloat(average) + grade) / (count + 1)) else grade
-          multi = client.multi()
-          multi.hset "game_player_grade_count", player_key, count + 1
-          multi.hset "game_player_grade_average", player_key, new_average
-          multi.hset "#{team_id}:#{game_id}", player_id, JSON.stringify(
-            player_id: player_id
-            average: new_average
-            count: count + 1
-          )
-          multi.exec()
-          letter_grade = findLetterGrade(new_average)
-          console.log "new letter grade is ", letter_grade, " and is based on ", new_average
-          if letter_grade?   
-            console.log "valid letter grade"         
-            setJsonResponseHeaders res, JSON.stringify({grade: letter_grade, count: count + 1})
-          else
-            console.log " can't calculate grade - doing the 506"
-            res.status(506)
-            setJsonResponseHeaders res, "Grade could not be calculated."
+
+      multi = client.multi()
+      multi.hset "user_votes", user_vote_key, grade      
+      multi.hget "game_player_grade_count", player_key
+      multi.hget "game_player_grade_average", player_key
+      multi.exec (err, replies) -> 
+        count = (if (replies[1]?) then parseInt(replies[1]) else 0)        
+        new_average = if replies[2]? then ((count * parseFloat(replies[2]) + grade) / (count + 1)) else grade
+        set_multi = client.multi()
+        set_multi.hset "game_player_grade_count", player_key, count + 1
+        set_multi.hset "game_player_grade_average", player_key, new_average
+        set_multi.hset "#{team_id}:#{game_id}", player_id, JSON.stringify(
+          player_id: player_id
+          average: new_average
+          count: count + 1
+        )
+        set_multi.exec()
+        letter_grade = findLetterGrade(new_average)
+        if letter_grade?   
+          setJsonResponseHeaders res, JSON.stringify({grade: letter_grade, count: count + 1})
+        else
+          console.log " can't calculate grade - doing the 506"
+          res.status(506)
+          setJsonResponseHeaders res, "Grade could not be calculated."
 
     else
       console.log "voted already"

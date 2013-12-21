@@ -35,6 +35,7 @@ showSelectBox = (player_id) ->
 	false
 
 displayGrades = (message) ->
+	populateSelectBox()
 	grades = message['data']['grades']
 	player_ids_with_grades = []
 	for g in grades
@@ -56,27 +57,33 @@ displayGrade = (grade, show_control) ->
 	html = "
 		<div style=\"margin-top: 3px; padding: 4px; text-align:center; background: #cc0000; color: white; font-weight: bold\" class='user-grade'>#{grade.grade}</div>
 		<div style=\"padding: 4px; text-align: center; color: white; background: black; font-weight: bold; font-size: .8em\" class='user-grade-count'>#{grade.count}</div>"
-	if show_control			
-		html += "<div style=\"text-align:center\"><a style=\"font-weight: bold; font-size: .8em;\" href=\"#\" class='user-grade-control' onclick=\"this.style.display = 'none'; return showSelectBox('#{grade.player_id}')\">Rate!</a></div>"
 	user_grade_container.innerHTML = html
+	if show_control
+		user_grade_container.nextSibling.style.display = "";
+	else
+		user_grade_container.nextSibling.style.display = "none";
 
 updateGrade = (message) ->
 	displayGrade(message['data'], false)
 
 populateSelectBox = (message) ->
 	grade_holders = document.getElementsByClassName("grade-holder")
+	grades = ['Rate!', 'A+', 'A-', 'A', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
+	select_options = ""
+	for g in grades
+		select_options += "<option>#{g}</option>"
+
 	for g in grade_holders
 		select = document.createElement('select')
-		select.innerHTML = message['data']['select_options']
+		select.innerHTML = select_options
 		select.onchange = gradeSelectCallback
-		select.style.display = 'none'
+		select.setAttribute("style", "font-size: .6em")
+		select.style.display = ''
 		g.appendChild(select)
 
 windowLoadHandler = (e) ->
 	message = JSON.parse(e.data) 
-	console.log message
 	switch message['type']
-		when 'select-options' then populateSelectBox(message)
 		when 'updated-grade' then updateGrade(message)
 		when 'display-grades' then displayGrades(message)
 

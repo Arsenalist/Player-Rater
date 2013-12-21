@@ -1,15 +1,5 @@
 jQuery(document).ready ( $ ) ->
 
-	grades = ['-', 'A+', 'A-', 'A', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
-	select_options = ""
-	for g in grades
-		select_options += "<option>#{g}</option>"
-	message =
-		type: 'select-options'
-		data:
-			select_options: select_options
-	window.parent.postMessage(JSON.stringify(message), '*')
-
 	window.addEventListener  "message", (e) ->
 		message = JSON.parse(e.data) 
 		switch message['type']
