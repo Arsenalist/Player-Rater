@@ -81,10 +81,10 @@ app.get("/mediator.js", function(req, res) {
   return res.sendfile("./mediator.js");
 });
 
-app.get("/rating/:team_id/:game_id", function(req, res) {
+app.post("/rating", function(req, res) {
   var game_id, ip_address, team_id;
-  team_id = req.params.team_id;
-  game_id = req.params.game_id;
+  team_id = req.body.team_id;
+  game_id = req.body.game_id;
   ip_address = req.connection.remoteAddress;
   return client.hvals("" + team_id + ":" + game_id, function(err, reply) {
     var ind, json, multi, r, results, user_vote_key, _i, _j, _len, _len1;
@@ -98,14 +98,14 @@ app.get("/rating/:team_id/:game_id", function(req, res) {
     multi = client.multi();
     for (ind = _j = 0, _len1 = results.length; _j < _len1; ind = ++_j) {
       r = results[ind];
-      console.log(ind);
       user_vote_key = "" + ip_address + ":" + game_id + ":" + r.player_id;
       multi.hexists("user_votes", user_vote_key);
     }
     return multi.exec(function(err, replies) {
       var i, _k, _len2;
-      console.log("returned from multi");
-      console.log(replies);
+      if (err != null) {
+        console.log(err);
+      }
       for (i = _k = 0, _len2 = replies.length; _k < _len2; i = ++_k) {
         r = replies[i];
         results[i]["voted"] = r === 1;
@@ -130,12 +130,11 @@ app.post("/vote", function(req, res) {
     return;
   }
   grade = parseFloat(gradeMap[grade]);
-  console.log("letter grade from user mapped to " + grade);
   console.log("game ", game_id, "player ", player_id, "grade ", grade, "team ", team_id);
   user_vote_key = "" + ip_address + ":" + game_id + ":" + player_id;
   return client.hexists("user_votes", user_vote_key, function(err, has_voted) {
     var average, count, multi, new_average, player_key;
-    if (true || !has_voted) {
+    if (!has_voted) {
       player_key = "" + team_id + ":" + game_id + ":" + player_id;
       count = average = new_average = 0;
       multi = client.multi();
@@ -154,7 +153,11 @@ app.post("/vote", function(req, res) {
           average: new_average,
           count: count + 1
         }));
-        set_multi.exec();
+        set_multi.exec(function(err, replies) {
+          if (err != null) {
+            return console.log(err);
+          }
+        });
         letter_grade = findLetterGrade(new_average);
         if (letter_grade != null) {
           return setJsonResponseHeaders(res, JSON.stringify({
@@ -162,13 +165,13 @@ app.post("/vote", function(req, res) {
             count: count + 1
           }));
         } else {
-          console.log(" can't calculate grade - doing the 506");
+          console.log("Can't calculate grade");
           res.status(506);
           return setJsonResponseHeaders(res, "Grade could not be calculated.");
         }
       });
     } else {
-      console.log("voted already");
+      console.log("Voted already");
       res.status(506);
       return setJsonResponseHeaders(res, "Already voted.");
     }

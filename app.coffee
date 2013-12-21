@@ -1,5 +1,4 @@
 express = require("express")
-
 app = express()
 app.use(express.bodyParser());
 
@@ -72,12 +71,12 @@ app.get "/client.js", (req, res) ->
 app.get "/mediator.js", (req, res) ->
   res.sendfile("./mediator.js")
 
-app.get "/rating/:team_id/:game_id", (req, res) ->
-  team_id = req.params.team_id
-  game_id = req.params.game_id
+app.post "/rating", (req, res) ->
+  team_id = req.body.team_id
+  game_id = req.body.game_id
   ip_address = req.connection.remoteAddress
 
-  client.hvals "#{team_id}:#{game_id}", (err, reply) ->    
+  client.hvals "#{team_id}:#{game_id}", (err, reply) ->
     results = new Array()
     for r in reply
       json = JSON.parse(r)
@@ -87,12 +86,10 @@ app.get "/rating/:team_id/:game_id", (req, res) ->
     multi = client.multi()
 
     for r, ind in results
-      console.log ind
       user_vote_key = "#{ip_address}:#{game_id}:#{r.player_id}"
       multi.hexists "user_votes", user_vote_key
     multi.exec (err, replies) ->
-      console.log "returned from multi"
-      console.log replies
+      console.log err if err?
       for r, i in replies
         results[i]["voted"] = (r == 1)
       console.log results
@@ -114,13 +111,11 @@ app.post "/vote", (req, res) ->
       setJsonResponseHeaders res, "Invalid grade."
       return
   grade = parseFloat(gradeMap[grade])
-  console.log "letter grade from user mapped to #{grade}"
-
 
   console.log "game ", game_id, "player ", player_id, "grade ", grade, "team ", team_id
   user_vote_key = "#{ip_address}:#{game_id}:#{player_id}"
   client.hexists "user_votes", user_vote_key, (err, has_voted) ->
-    if true or not has_voted
+    if not has_voted
       player_key = "#{team_id}:#{game_id}:#{player_id}"
       # Record the vote
       # Calculate the new average based on existing count and average
@@ -141,17 +136,18 @@ app.post "/vote", (req, res) ->
           average: new_average
           count: count + 1
         )
-        set_multi.exec()
+        set_multi.exec (err, replies)->
+          console.log err if err?
         letter_grade = findLetterGrade(new_average)
         if letter_grade?   
           setJsonResponseHeaders res, JSON.stringify({grade: letter_grade, count: count + 1})
         else
-          console.log " can't calculate grade - doing the 506"
+          console.log "Can't calculate grade"
           res.status(506)
           setJsonResponseHeaders res, "Grade could not be calculated."
 
     else
-      console.log "voted already"
+      console.log "Voted already" 
       res.status(506)
       setJsonResponseHeaders res, "Already voted."
 

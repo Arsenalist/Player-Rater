@@ -9,9 +9,13 @@ jQuery(document).ready ( $ ) ->
 	populateGrades = (message) ->
 		team_id = message['data']['team_id']
 		game_id = message['data']['game_id']
+		params =
+			team_id: team_id
+			game_id: game_id			
 		$.ajax(
-			url: "/rating/#{team_id}/#{game_id}"
-			type: 'GET'
+			url: "/rating"
+			data: params
+			type: 'POST'
 			dataType: 'json'
 		)
 		.done (data) ->
