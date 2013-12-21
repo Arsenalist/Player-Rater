@@ -7,7 +7,7 @@ app = express();
 
 app.use(express.bodyParser());
 
-if (process.env.REDISTOGO_URL != null) {
+if (process.env.REDISTOGO_URL) {
   console("in the if");
   rtg = require("url").parse(process.env.REDISTOGO_URL);
   client = require("redis").createClient(rtg.port, rtg.hostname);
