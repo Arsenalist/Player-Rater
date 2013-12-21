@@ -4,12 +4,10 @@ app = express()
 app.use(express.bodyParser());
 
 if process.env.REDISTOGO_URL
-  console "in the if"
   rtg  = require("url").parse(process.env.REDISTOGO_URL);
   client = require("redis").createClient(rtg.port, rtg.hostname);
   client.auth(rtg.auth.split(":")[1]);  
 else
-  console.log "in the else"
   client = require("redis").createClient();
 
 
@@ -157,5 +155,6 @@ app.post "/vote", (req, res) ->
       res.status(506)
       setJsonResponseHeaders res, "Already voted."
 
-app.listen 3000
-console.log "Listening on port 3000"
+port = process.env.PORT || 3000
+app.listen( port )
+console.log "Listening on port #{port}"
