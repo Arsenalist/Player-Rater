@@ -2,6 +2,13 @@ express = require("express")
 app = express()
 app.use(express.bodyParser());
 
+app.use (req, res, next) ->
+  team_id = req.body.team_id
+  if (team_id? and team_id != 'tor')
+      setJsonResponseHeaders res, "Team not allowed."
+  else
+    next()
+
 if process.env.REDISTOGO_URL
   rtg  = require("url").parse(process.env.REDISTOGO_URL);
   client = require("redis").createClient(rtg.port, rtg.hostname);

@@ -7,6 +7,16 @@ app = express();
 
 app.use(express.bodyParser());
 
+app.use(function(req, res, next) {
+  var team_id;
+  team_id = req.body.team_id;
+  if ((team_id != null) && team_id !== 'tor') {
+    return setJsonResponseHeaders(res, "Team not allowed.");
+  } else {
+    return next();
+  }
+});
+
 if (process.env.REDISTOGO_URL) {
   rtg = require("url").parse(process.env.REDISTOGO_URL);
   client = require("redis").createClient(rtg.port, rtg.hostname);
