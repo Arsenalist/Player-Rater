@@ -95,12 +95,12 @@ app.get("/mediator.html", function(req, res) {
   return res.sendfile("./mediator.html");
 });
 
-app.get("/client.js", function(req, res) {
-  return res.sendfile("./client.js");
+app.get("/client.min.js", function(req, res) {
+  return res.sendfile("./client.min.js");
 });
 
-app.get("/mediator.js", function(req, res) {
-  return res.sendfile("./mediator.js");
+app.get("/mediator.min.js", function(req, res) {
+  return res.sendfile("./mediator.min.js");
 });
 
 app.post("/rating", function(req, res) {
