@@ -65,14 +65,14 @@ findLetterGrade = (numerical) ->
 
 
 findRemoteAddress = (req) ->
-  remote_address = req.headers["x-forwarded-for"];
+  remote_address = req.headers["x-forwarded-for"]
   if remote_address?
     list = remote_address.split(",")
-    remote_address = list[list.length-1]
+    remote_address = list[0]
   else
     remote_address = req.connection.remoteAddress
 
-  return remote_address
+  return remote_address.trim()
 
 setJsonResponseHeaders = (res, data) ->
   res.header "content-type", "text/javascript"
