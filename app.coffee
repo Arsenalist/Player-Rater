@@ -57,6 +57,16 @@ findLetterGrade = (numerical) ->
     return null
 
 
+findRemoteAddress = (req) ->
+  remote_address = req.headers["x-forwarded-for"];
+  if remote_address?
+    list = remote_address.split(",")
+    remote_address = list[list.length-1]
+  else
+    remote_address = req.connection.remoteAddress
+
+  return remote_address
+
 setJsonResponseHeaders = (res, data) ->
   res.header "content-type", "text/javascript"
   res.header "content-length", (if not data? then 0 else data.length)
@@ -74,7 +84,7 @@ app.get "/mediator.js", (req, res) ->
 app.post "/rating", (req, res) ->
   team_id = req.body.team_id
   game_id = req.body.game_id
-  ip_address = req.connection.remoteAddress
+  ip_address = findRemoteAddress(req)
 
   client.hvals "#{team_id}:#{game_id}", (err, reply) ->
     results = new Array()
@@ -104,7 +114,7 @@ app.post "/vote", (req, res) ->
   player_id = req.body.player_id
   grade = req.body.player_grade
   team_id = req.body.team_id
-  ip_address = req.connection.remoteAddress
+  ip_address = findRemoteAddress(req)
 
   if not grade of gradeMap
       res.status(506)
