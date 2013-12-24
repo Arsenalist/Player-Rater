@@ -36,7 +36,7 @@ gradeSelectCallback = function(e) {
     data: {
       game_id: iframe.getAttribute("data-game-id"),
       team_id: iframe.getAttribute("data-team-id"),
-      player_id: e.target.previousSibling.previousSibling.getAttribute("data-player-id"),
+      player_id: e.target.previousElementSibling.previousElementSibling.getAttribute("data-player-id"),
       player_grade: e.target.value
     }
   };
@@ -45,7 +45,7 @@ gradeSelectCallback = function(e) {
 };
 
 showSelectBox = function(player_id) {
-  document.getElementById("user-grade-container-" + player_id).nextSibling.style.display = '';
+  document.getElementById("user-grade-container-" + player_id).nextElementSibling.style.display = '';
   return false;
 };
 
@@ -56,7 +56,7 @@ displayGrades = function(message) {
   player_ids_with_grades = [];
   for (_i = 0, _len = grades.length; _i < _len; _i++) {
     g = grades[_i];
-    if (g.player_id != null) {
+    if (!!g.player_id) {
       displayGrade(g, !g.voted);
       player_ids_with_grades.push(g.player_id);
     }
@@ -86,9 +86,9 @@ displayGrade = function(grade, show_control) {
   html = "		<div style=\"margin-top: 3px; padding: 4px; text-align:center; background: #cc0000; color: white; font-weight: bold\" class='user-grade'>" + grade.grade + "</div>		<div style=\"padding: 4px; text-align: center; color: white; background: black; font-weight: bold; font-size: .8em\" class='user-grade-count'>" + grade.count + "</div>";
   user_grade_container.innerHTML = html;
   if (show_control) {
-    return user_grade_container.nextSibling.style.display = "";
+    return user_grade_container.nextElementSibling.style.display = "";
   } else {
-    return user_grade_container.nextSibling.style.display = "none";
+    return user_grade_container.nextElementSibling.style.display = "none";
   }
 };
 
@@ -111,7 +111,7 @@ populateSelectBox = function(message) {
     select = document.createElement('select');
     select.innerHTML = select_options;
     select.onchange = gradeSelectCallback;
-    select.setAttribute("style", "font-size: .6em");
+    select.setAttribute("style", "width: 60px; font-size: .6em");
     select.style.display = '';
     _results.push(g.appendChild(select));
   }
