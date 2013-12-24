@@ -72,7 +72,8 @@ findRemoteAddress = (req) ->
   else
     remote_address = req.connection.remoteAddress
 
-  return remote_address.trim()
+  return remote_address.trim() 
+  
 
 setJsonResponseHeaders = (res, data) ->
   res.header "content-type", "text/javascript"
@@ -82,11 +83,11 @@ setJsonResponseHeaders = (res, data) ->
 app.get "/mediator.html", (req, res) ->
   res.sendfile("./mediator.html")
 
-app.get "/client.js", (req, res) ->
-  res.sendfile("./client.js")
+app.get "/client.min.js", (req, res) ->
+  res.sendfile("./client.min.js")
 
-app.get "/mediator.js", (req, res) ->
-  res.sendfile("./mediator.js")
+app.get "/mediator.min.js", (req, res) ->
+  res.sendfile("./mediator.min.js")
 
 app.post "/rating", (req, res) ->
   team_id = req.body.team_id
