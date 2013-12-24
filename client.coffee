@@ -39,13 +39,16 @@ displayGrades = (message) ->
 	grades = message['data']['grades']
 	player_ids_with_grades = []
 	for g in grades
-		displayGrade(g, !g.voted)
-		player_ids_with_grades.push g.player_id
+		if g.player_id?
+			displayGrade(g, !g.voted)
+			player_ids_with_grades.push g.player_id
 	grade_holders = document.getElementsByClassName("grade-holder")
 	for gh in grade_holders
-		if gh.getAttribute("data-player-id") not in player_ids_with_grades
+		player_id = gh.getAttribute("data-player-id")
+		# technically, this player_id should never be null as the markup of the page should be correct
+		if player_id? and player_id not in player_ids_with_grades
 			grade =
-				player_id: gh.getAttribute("data-player-id")
+				player_id: player_id
 				grade: '-'
 				count: 0
 			displayGrade(grade, true)
