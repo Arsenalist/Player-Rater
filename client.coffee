@@ -31,15 +31,15 @@ gradeSelectCallback = (e)->
 	iframe.contentWindow.postMessage(JSON.stringify(message), '*')
 
 showSelectBox = (player_id) ->
-	document.getElementById("user-grade-container-#{player_id}").nextSibling.style.display = ''
+	document.getElementById("user-grade-container-#{player_id}").nextElementSibling.style.display = ''
 	false
 
 displayGrades = (message) ->
-	populateSelectBox()
+	populateSelectBox()		
 	grades = message['data']['grades']
 	player_ids_with_grades = []
 	for g in grades
-		if g.player_id?
+		if not not g.player_id
 			displayGrade(g, !g.voted)
 			player_ids_with_grades.push g.player_id
 	grade_holders = document.getElementsByClassName("grade-holder")
@@ -62,9 +62,9 @@ displayGrade = (grade, show_control) ->
 		<div style=\"padding: 4px; text-align: center; color: white; background: black; font-weight: bold; font-size: .8em\" class='user-grade-count'>#{grade.count}</div>"
 	user_grade_container.innerHTML = html
 	if show_control
-		user_grade_container.nextSibling.style.display = "";
+		user_grade_container.nextElementSibling.style.display = "";
 	else
-		user_grade_container.nextSibling.style.display = "none";
+		user_grade_container.nextElementSibling.style.display = "none";
 
 updateGrade = (message) ->
 	displayGrade(message['data'], false)
