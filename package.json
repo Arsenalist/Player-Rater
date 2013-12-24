@@ -10,5 +10,10 @@
     "redis-url": "~0.2.0",
     "coffee-script": "1.6.3"
   },
-  "engines": "0.10.20"
+  "engines": "0.10.20",
+  "devDependencies": {
+    "grunt": "0.4.2",
+    "grunt-contrib-uglify": "0.2.7",
+    "grunt-contrib-watch": "0.5.3"
+  }
 }
