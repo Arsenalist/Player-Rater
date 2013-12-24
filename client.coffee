@@ -24,7 +24,7 @@ gradeSelectCallback = (e)->
 		data: 
 			game_id: iframe.getAttribute("data-game-id")
 			team_id: iframe.getAttribute("data-team-id")
-			player_id: e.target.previousSibling.previousSibling.getAttribute("data-player-id")
+			player_id: e.target.previousElementSibling.previousElementSibling.getAttribute("data-player-id")
 			player_grade: e.target.value
 
 	e.target.style.display = 'none'
