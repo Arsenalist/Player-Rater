@@ -115,7 +115,9 @@ app.post("/rating", function(req, res) {
       r = reply[_i];
       json = JSON.parse(r);
       json['grade'] = findLetterGrade(parseFloat(json['average']));
-      results.push(json);
+      if (!!json['player_id']) {
+        results.push(json);
+      }
     }
     multi = client.multi();
     for (ind = _j = 0, _len1 = results.length; _j < _len1; ind = ++_j) {
