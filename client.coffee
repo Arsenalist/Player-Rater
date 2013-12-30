@@ -24,7 +24,7 @@ gradeSelectCallback = (e)->
 		data: 
 			game_id: iframe.getAttribute("data-game-id")
 			team_id: iframe.getAttribute("data-team-id")
-			player_id: e.target.previousElementSibling.previousElementSibling.getAttribute("data-player-id")
+			player_id: e.target.previousElementSibling.getAttribute("data-player-id")
 			player_grade: e.target.value
 
 	e.target.style.display = 'none'
@@ -80,9 +80,9 @@ populateSelectBox = (message) ->
 		select = document.createElement('select')
 		select.innerHTML = select_options
 		select.onchange = gradeSelectCallback
-		select.setAttribute("style", "font-size: .6em")
+		select.setAttribute("style", "width: 60px; font-size: .6em")
 		select.style.display = ''
-		g.appendChild(select)
+		g.parentNode.insertBefore(select, null);
 
 windowLoadHandler = (e) ->
 	message = JSON.parse(e.data) 
