@@ -1,6 +1,8 @@
 express = require("express")
 app = express()
-app.use(express.bodyParser());
+expressValidator = require('express-validator')
+app.use(express.bodyParser())
+app.use(expressValidator())
 
 app.use (req, res, next) ->
   team_id = req.body.team_id
@@ -115,13 +117,29 @@ app.post "/rating", (req, res) ->
       setJsonResponseHeaders res, results
 
     
-
+ 
 
 app.post "/vote", (req, res) ->
+
+  req.checkBody('team_id', 'Invalid Team ID').notEmpty()
+  req.checkBody('game_id', 'Invalid Game ID').notEmpty().isInt()
+  req.checkBody('player_id', 'Invalid Player ID').notEmpty()  
+  req.checkBody('player_grade', 'Invalid Player Grade').notEmpty()
+
+  errors = req.validationErrors()
+  if (errors)
+    res.status(400)
+    setJsonResponseHeaders res, JSON.stringify(errors)
+    return
+
+
+  team_id = req.body.team_id
   game_id = req.body.game_id
   player_id = req.body.player_id
   grade = req.body.player_grade
-  team_id = req.body.team_id
+  
+
+
   ip_address = findRemoteAddress(req)
 
   if not grade of gradeMap
