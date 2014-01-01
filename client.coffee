@@ -71,7 +71,7 @@ updateGrade = (message) ->
 
 populateSelectBox = (message) ->
 	grade_holders = document.getElementsByClassName("grade-holder")
-	grades = ['Rate!', 'A+', 'A-', 'A', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
+	grades = ['Rate!', 'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
 	select_options = ""
 	for g in grades
 		select_options += "<option>#{g}</option>"
