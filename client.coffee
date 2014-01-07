@@ -37,10 +37,11 @@ showSelectBox = (player_id) ->
 displayGrades = (message) ->
 	populateSelectBox()		
 	grades = message['data']['grades']
+	allow_game_voting = message['data']['allow_game_voting']
 	player_ids_with_grades = []
 	for g in grades
 		if not not g.player_id
-			displayGrade(g, !g.voted)
+			displayGrade(g, g.allow_voting and allow_game_voting)
 			player_ids_with_grades.push g.player_id
 	grade_holders = document.getElementsByClassName("grade-holder")
 	for gh in grade_holders
@@ -51,12 +52,18 @@ displayGrades = (message) ->
 				player_id: player_id
 				grade: '-'
 				count: 0
-			displayGrade(grade, true)
+			displayGrade(grade, allow_game_voting)
 
 
 
 displayGrade = (grade, show_control) -> 
 	user_grade_container = document.getElementById("user-grade-container-#{grade.player_id}")
+
+	# Do not attempt to display a grade if the container is not found, this can happen
+	# when we are rendering another recap for the same team/game, only this time fewer players
+	# are being reated
+	if not user_grade_container
+		return
 	html = "
 		<div style=\"margin-top: 3px; padding: 4px; text-align:center; background: #cc0000; color: white; font-weight: bold\" class='user-grade'>#{grade.grade}</div>
 		<div style=\"padding: 4px; text-align: center; color: white; background: black; font-weight: bold; font-size: .8em\" class='user-grade-count'>#{grade.count}</div>"

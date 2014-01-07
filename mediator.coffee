@@ -22,7 +22,7 @@ jQuery(document).ready ( $ ) ->
 			message =
 				type: 'display-grades'
 				data:
-					grades: data
+					data
 			window.parent.postMessage(JSON.stringify(message), '*')
 
 
