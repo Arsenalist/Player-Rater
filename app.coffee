@@ -15,6 +15,7 @@ if process.env.REDISTOGO_URL
   rtg  = require("url").parse(process.env.REDISTOGO_URL);
   client = require("redis").createClient(rtg.port, rtg.hostname);
   client.auth(rtg.auth.split(":")[1]);  
+
 else
   client = require("redis").createClient();
 
@@ -95,7 +96,6 @@ app.post "/rating", (req, res) ->
   team_id = req.body.team_id
   game_id = req.body.game_id
   ip_address = findRemoteAddress(req)
-
   client.hvals "#{team_id}:#{game_id}", (err, reply) ->
     results = new Array()
     for r in reply
@@ -172,7 +172,7 @@ app.post "/vote", (req, res) ->
     has_voted = not not replies[1]        
     # Ignoring replies[2] as that's the hset whose return value we don't really care about        
     count = (if (replies[3]?) then parseInt(replies[3]) else 0)
-    new_average = if replies[4]? then ((count * parseFloat(replies[400]) + grade) / (count + 1)) else grade
+    new_average = if replies[4]? then ((count * parseFloat(replies[4]) + grade) / (count + 1)) else grade
 
 
     # If they've voted, deny

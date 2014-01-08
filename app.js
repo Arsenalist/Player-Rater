@@ -188,7 +188,7 @@ app.post("/vote", function(req, res) {
     game_enabled = !!replies[0];
     has_voted = !!replies[1];
     count = ((replies[3] != null) ? parseInt(replies[3]) : 0);
-    new_average = replies[4] != null ? (count * parseFloat(replies[400]) + grade) / (count + 1) : grade;
+    new_average = replies[4] != null ? (count * parseFloat(replies[4]) + grade) / (count + 1) : grade;
     if (has_voted) {
       res.status(506);
       setJsonResponseHeaders(res, "Already voted.");
