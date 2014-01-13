@@ -58,30 +58,32 @@ displayGrades = (message) ->
 
 displayGrade = (grade, show_control) -> 
 	user_grade_container = document.getElementById("user-grade-container-#{grade.player_id}")
-
 	# Do not attempt to display a grade if the container is not found, this can happen
 	# when we are rendering another recap for the same team/game, only this time fewer players
 	# are being reated
 	if not user_grade_container
 		return
-	html = "
-		<div style=\"margin-top: 3px; padding: 4px; text-align:center; background: #cc0000; color: white; font-weight: bold\" class='user-grade'>#{grade.grade}</div>
-		<div style=\"padding: 4px; text-align: center; color: white; background: black; font-weight: bold; font-size: .8em\" class='user-grade-count'>#{grade.count}</div>"
-	user_grade_container.innerHTML = html
+	if 'th' of grade
+		html = "
+			  <ul style=\"text-align:left;font-size: .6em; list-style-type:none; margin: 0; padding: 0\">
+			   <li><span style=\"width:#{grade['tl']}%;\">Low #{grade['tl']}%</span></li>
+			   <li><span style=\"width:#{grade['jr']}%;\">Right #{grade['jr']}%</span></li>
+			   <li><span style=\"width:#{grade['th']}%;\">High #{grade['th']}%</span></li>
+			  </ul>"
+
+		user_grade_container.innerHTML = html
+
 	if show_control
-		user_grade_container.nextElementSibling.style.display = "";
+		user_grade_container.nextElementSibling.style.display = ""
 	else
-		user_grade_container.nextElementSibling.style.display = "none";
+		user_grade_container.nextElementSibling.style.display = "none"
 
 updateGrade = (message) ->
 	displayGrade(message['data'], false)
 
 populateSelectBox = (message) ->
 	grade_holders = document.getElementsByClassName("grade-holder")
-	grades = ['Rate!', 'A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F']
-	select_options = ""
-	for g in grades
-		select_options += "<option>#{g}</option>"
+	select_options = '<select><option>Rate the grade!</option><option value="tl">Too Low</option><option value="jr">Just Right</option><option value="th">Too High</option></select>'
 
 	for g in grade_holders
 		select = document.createElement('select')

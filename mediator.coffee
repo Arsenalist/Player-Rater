@@ -39,9 +39,7 @@ jQuery(document).ready ( $ ) ->
 			message =
 				type: 'updated-grade'
 				data:
-					grade: data.grade
-					player_id: params['player_id']
-					count: data.count
+					data
 			window.parent.postMessage(JSON.stringify(message), '*')
 		
 

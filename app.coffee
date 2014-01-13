@@ -21,50 +21,9 @@ else
 
 
 gradeMap =
-  'A+': 4
-  'A' : 3.85
-  'A-': 3.7
-  'B+': 3.3
-  'B' : 3
-  'B-': 2.7
-  'C+': 2.3
-  'C' : 2
-  'C-': 1.7
-  'D+': 1.3
-  'D' : 1
-  'D-': .7
-  'F' : 0
-
-
-findLetterGrade = (numerical) ->
-  if 4 >= numerical > 3.85
-    return 'A+'
-  else if 3.85 >=  numerical > 3.7
-    return 'A-'
-  else if 3.7 >=  numerical > 3.3
-    return 'A'
-  else if 3.3 >=  numerical > 3
-    return 'B+'
-  else if 3 >=  numerical > 2.7
-    return 'B'
-  else if 2.7 >=  numerical > 2.3
-    return 'B-'
-  else if 2.3 >=  numerical > 2
-    return 'C+'
-  else if 2 >=  numerical > 1.7
-    return 'C'
-  else if 1.7 >=  numerical > 1.3
-    return 'C-'
-  else if 1.3 >=  numerical > 1
-    return 'D+'
-  else if 1 >=  numerical > .7
-    return 'D'
-  else if .7 >=  numerical > .5
-    return 'D-'
-  else if numerical <= .5
-    return 'F'
-  else
-    return null
+  'tl': 1
+  'jr' : 1
+  'th': 1
 
 
 findRemoteAddress = (req) ->
@@ -83,6 +42,13 @@ setJsonResponseHeaders = (res, data) ->
   res.header "content-length", (if not data? then 0 else data.length)
   res.end data
 
+calculatePercentages = (grade) ->
+  total = grade['tl'] + grade['jr'] + grade['th']
+  grade['tl'] = Math.floor(grade['tl']*100/total)
+  grade['jr'] = Math.floor(grade['jr']*100/total)
+  grade['th'] = Math.floor(grade['th']*100/total)
+  return grade
+
 app.get "/mediator.html", (req, res) ->
   res.sendfile("./mediator.html")
 
@@ -96,12 +62,13 @@ app.post "/rating", (req, res) ->
   team_id = req.body.team_id
   game_id = req.body.game_id
   ip_address = findRemoteAddress(req)
+  game_key_for_expiry = "user_votes:#{game_id}:#{team_id}"
+
   client.hvals "#{team_id}:#{game_id}", (err, reply) ->
     results = new Array()
     for r in reply
       json = JSON.parse(r)
-      json['grade'] = findLetterGrade(parseFloat(json['average']))
-      results.push json
+      results.push calculatePercentages(json)
 
     multi = client.multi()
 
@@ -110,15 +77,17 @@ app.post "/rating", (req, res) ->
 
     for r, ind in results
       user_vote_key = "#{ip_address}:#{game_id}:#{r.player_id}"
-      multi.hexists "user_votes", user_vote_key
+      multi.hexists game_key_for_expiry, user_vote_key
 
     multi.exec (err, replies) ->
+      console.log "replies: " + replies
       console.log err if err?
       # allow game voting if game is active, or if there's no votes yet
       allow_game_voting = replies[0] == 1 or replies.length == 1
-      for r, i in replies[1..]
-        results[i]["allow_voting"] = replies[i] == 0
-      #console.log results
+      console.log replies
+      result_replies = replies[1..]
+      for r, i in result_replies
+        results[i]["allow_voting"] = result_replies[i] == 0
       results = JSON.stringify({"allow_game_voting": allow_game_voting, "grades": results})
       setJsonResponseHeaders res, results
 
@@ -150,9 +119,9 @@ app.post "/vote", (req, res) ->
       res.status(506)
       setJsonResponseHeaders res, "Invalid grade."
       return
-  grade = parseFloat(gradeMap[grade])
 
   console.log "Game: #{game_id}, Player: #{player_id}, Grade: #{grade}, Team: #{team_id}"
+  game_key_for_expiry = "user_votes:#{game_id}:#{team_id}"
   user_vote_key = "#{ip_address}:#{game_id}:#{player_id}"
   player_key = "#{team_id}:#{game_id}:#{player_id}"
   active_game_key = "active_game:#{game_id}"
@@ -160,10 +129,11 @@ app.post "/vote", (req, res) ->
   outer_multi = client.multi()
 
   outer_multi.get active_game_key  
-  outer_multi.hexists "user_votes", user_vote_key
-  outer_multi.hset "user_votes", user_vote_key, grade      
-  outer_multi.hget "game_player_grade_count", player_key
-  outer_multi.hget "game_player_grade_average", player_key
+  outer_multi.hexists game_key_for_expiry, user_vote_key
+  outer_multi.hset game_key_for_expiry, user_vote_key, grade   
+  outer_multi.hget "game_player_grade", player_key
+  #outer_multi.expire game_key_for_expiry, 86400
+  outer_multi.expire game_key_for_expiry, 15
 
   outer_multi.exec (err, replies) ->
     count = average = new_average = 0
@@ -171,8 +141,7 @@ app.post "/vote", (req, res) ->
     game_enabled = not not replies[0]
     has_voted = not not replies[1]        
     # Ignoring replies[2] as that's the hset whose return value we don't really care about        
-    count = (if (replies[3]?) then parseInt(replies[3]) else 0)
-    new_average = if replies[4]? then ((count * parseFloat(replies[4]) + grade) / (count + 1)) else grade
+    stored_grade = if (replies[3]?) then JSON.parse(replies[3]) else {tl: 0, jr: 0, th: 0}
 
 
     # If they've voted, deny
@@ -197,22 +166,15 @@ app.post "/vote", (req, res) ->
 
     # There have been votes (and game is enabled which is implied by first if failing)
     set_multi = client.multi()
-    set_multi.hset "game_player_grade_count", player_key, count + 1
-    set_multi.hset "game_player_grade_average", player_key, new_average
-    set_multi.hset "#{team_id}:#{game_id}", player_id, JSON.stringify(
-      player_id: player_id
-      average: new_average
-      count: count + 1
-    )
+    stored_grade[grade] = stored_grade[grade] + 1
+    stored_grade['player_id'] = player_id
+    new_stored_grade = JSON.stringify(stored_grade)    
+
+    set_multi.hset "game_player_grade", player_key, new_stored_grade
+    set_multi.hset "#{team_id}:#{game_id}", player_id, new_stored_grade
     set_multi.exec (err, replies)->
       console.log err if err?
-    letter_grade = findLetterGrade(new_average)
-    if letter_grade?   
-      setJsonResponseHeaders res, JSON.stringify({grade: letter_grade, count: count + 1})
-    else
-      console.log "Can't calculate grade"
-      res.status(506)
-      setJsonResponseHeaders res, "Grade could not be calculated."
+      setJsonResponseHeaders res, JSON.stringify(calculatePercentages(stored_grade))
 
 port = process.env.PORT || 3000
 app.listen( port )
