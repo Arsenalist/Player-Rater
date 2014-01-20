@@ -98,12 +98,10 @@ app.post("/rating", function(req, res) {
     }
     return multi.exec(function(err, replies) {
       var allow_game_voting, i, result_replies, _k, _len2;
-      console.log("replies: " + replies);
       if (err != null) {
         console.log(err);
       }
       allow_game_voting = replies[0] === 1 || replies.length === 1;
-      console.log(replies);
       result_replies = replies.slice(1);
       for (i = _k = 0, _len2 = result_replies.length; _k < _len2; i = ++_k) {
         r = result_replies[i];
@@ -150,7 +148,7 @@ app.post("/vote", function(req, res) {
   outer_multi.hexists(game_key_for_expiry, user_vote_key);
   outer_multi.hset(game_key_for_expiry, user_vote_key, grade);
   outer_multi.hget("game_player_grade", player_key);
-  outer_multi.expire(game_key_for_expiry, 15);
+  outer_multi.expire(game_key_for_expiry, 86400);
   return outer_multi.exec(function(err, replies) {
     var average, count, game_enabled, has_voted, new_average, new_stored_grade, set_multi, stored_grade;
     count = average = new_average = 0;

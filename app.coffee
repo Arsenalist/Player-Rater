@@ -80,11 +80,9 @@ app.post "/rating", (req, res) ->
       multi.hexists game_key_for_expiry, user_vote_key
 
     multi.exec (err, replies) ->
-      console.log "replies: " + replies
       console.log err if err?
       # allow game voting if game is active, or if there's no votes yet
       allow_game_voting = replies[0] == 1 or replies.length == 1
-      console.log replies
       result_replies = replies[1..]
       for r, i in result_replies
         results[i]["allow_voting"] = result_replies[i] == 0
@@ -132,8 +130,7 @@ app.post "/vote", (req, res) ->
   outer_multi.hexists game_key_for_expiry, user_vote_key
   outer_multi.hset game_key_for_expiry, user_vote_key, grade   
   outer_multi.hget "game_player_grade", player_key
-  #outer_multi.expire game_key_for_expiry, 86400
-  outer_multi.expire game_key_for_expiry, 15
+  outer_multi.expire game_key_for_expiry, 86400
 
   outer_multi.exec (err, replies) ->
     count = average = new_average = 0
